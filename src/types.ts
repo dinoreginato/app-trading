@@ -1,12 +1,18 @@
-export interface Stock {
+export type AssetCategory = 'stocks' | 'crypto' | 'forex' | 'commodities';
+
+export interface Asset {
   symbol: string;
   name: string;
   price: number;
   change: number;
   changePercent: number;
   volume: number;
-  marketCap: string;
-  sector: string;
+  marketCap?: string;
+  sector?: string;
+  category: AssetCategory;
+  country?: string;
+  pair?: string;
+  icon?: string;
 }
 
 export interface PricePoint {
@@ -33,6 +39,8 @@ export interface Trade {
   reason: string;
   confidence: number;
   profit?: number;
+  category: AssetCategory;
+  currency: string;
 }
 
 export interface Position {
@@ -44,6 +52,7 @@ export interface Position {
   totalValue: number;
   profit: number;
   profitPercent: number;
+  category: AssetCategory;
 }
 
 export interface AutoTraderConfig {
@@ -55,6 +64,8 @@ export interface AutoTraderConfig {
   maxPositionSize: number;
   stopLossPercent: number;
   takeProfitPercent: number;
+  baseCurrency: string;
+  categories: AssetCategory[];
 }
 
 export interface LearningStats {
@@ -92,4 +103,28 @@ export interface Signal {
     volume: string;
     trend: string;
   };
+}
+
+export interface BrokerConnection {
+  id: string;
+  name: string;
+  type: 'exchange' | 'broker' | 'bank';
+  status: 'connected' | 'disconnected' | 'pending';
+  categories: AssetCategory[];
+  countries: string[];
+  apiKey?: string;
+  balance?: number;
+  logo?: string;
+  description: string;
+  features: string[];
+  fees: string;
+  isReal: boolean;
+}
+
+export interface CurrencyInfo {
+  code: string;
+  name: string;
+  symbol: string;
+  country: string;
+  flag: string;
 }

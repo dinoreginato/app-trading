@@ -1,4 +1,5 @@
-import { LearningStats, Pattern, Trade } from '../types';
+import { LearningStats, Pattern, Trade, AssetCategory } from '../types';
+import { assets } from './stockData';
 
 const patterns: Pattern[] = [
   { name: 'Golden Cross', description: 'SMA20 cruza por encima de SMA50', successRate: 72, occurrences: 45, avgReturn: 3.2, lastUsed: '2024-01-15' },
@@ -15,7 +16,6 @@ export function getLearningStats(trades: Trade[]): LearningStats {
   const winningTrades = trades.filter(t => (t.profit || 0) > 0);
   const losingTrades = trades.filter(t => (t.profit || 0) < 0);
   
-  const totalProfit = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
   const avgProfit = winningTrades.length > 0 ? winningTrades.reduce((sum, t) => sum + (t.profit || 0), 0) / winningTrades.length : 0;
   const avgLoss = losingTrades.length > 0 ? losingTrades.reduce((sum, t) => sum + (t.profit || 0), 0) / losingTrades.length : 0;
   
@@ -42,10 +42,18 @@ export function getPatterns(): Pattern[] {
   }));
 }
 
-export function simulateAutoTrade(capital: number, riskLevel: string): { trades: Trade[]; finalCapital: number } {
+export function simulateAutoTrade(
+  capital: number,
+  riskLevel: string,
+  categories: AssetCategory[],
+  currency: string
+): { trades: Trade[]; finalCapital: number } {
   const trades: Trade[] = [];
   let currentCapital = capital;
-  const symbols = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'NVDA', 'META', 'JPM'];
+  
+  const filteredAssets = assets.filter(a => categories.includes(a.category));
+  const symbols = filteredAssets.length > 0 ? filteredAssets : assets.slice(0, 10);
+  
   const reasons = [
     'RSI en sobreventa - oportunidad de compra',
     'Golden Cross detectado - tendencia alcista',
@@ -65,7 +73,7 @@ export function simulateAutoTrade(capital: number, riskLevel: string): { trades:
     const numTrades = Math.floor(Math.random() * 3) + 1;
     
     for (let t = 0; t < numTrades; t++) {
-      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      const asset = symbols[Math.floor(Math.random() * symbols.length)];
       const isBuy = Math.random() > 0.4;
       const riskMultiplier = riskLevel === 'aggressive' ? 0.15 : riskLevel === 'moderate' ? 0.08 : 0.04;
       const tradeAmount = currentCapital * riskMultiplier * (0.5 + Math.random() * 0.5);
@@ -78,15 +86,17 @@ export function simulateAutoTrade(capital: number, riskLevel: string): { trades:
       
       trades.push({
         id: `trade-${day}-${t}`,
-        symbol,
+        symbol: asset.symbol,
         type: isBuy ? 'BUY' : 'SELL',
-        price: 100 + Math.random() * 400,
-        quantity: Math.floor(tradeAmount / (100 + Math.random() * 400)),
+        price: asset.price * (1 + (Math.random() - 0.5) * 0.02),
+        quantity: Math.floor(tradeAmount / asset.price),
         total: tradeAmount,
         date: date.toISOString().split('T')[0],
         reason: reasons[Math.floor(Math.random() * reasons.length)],
         confidence: 60 + Math.random() * 35,
         profit: isBuy ? profit : -profit * 0.3,
+        category: asset.category,
+        currency,
       });
       
       currentCapital += profit;

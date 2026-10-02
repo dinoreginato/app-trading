@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Target, Activity, BarChart3, Brain, Zap } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { stocks, generatePriceHistory } from '../utils/stockData';
+import { assets, generatePriceHistory, getCategoryColor, getCategoryLabel } from '../utils/stockData';
+import { AssetCategory } from '../types';
 
 interface DashboardProps {
   capital: number;
   target: number;
   trades: number;
   winRate: number;
+  selectedCategory: AssetCategory | 'all';
 }
 
-export default function Dashboard({ capital, target, trades, winRate }: DashboardProps) {
+export default function Dashboard({ capital, target, trades, winRate, selectedCategory }: DashboardProps) {
   const [portfolioHistory, setPortfolioHistory] = useState<{ date: string; value: number }[]>([]);
-  const [selectedStock, setSelectedStock] = useState(0);
+  const [selectedAsset, setSelectedAsset] = useState(0);
   const [priceData, setPriceData] = useState<{ time: string; price: number }[]>([]);
+
+  const filteredAssets = selectedCategory === 'all' ? assets.slice(0, 12) : assets.filter(a => a.category === selectedCategory).slice(0, 8);
 
   useEffect(() => {
     const history = [];
@@ -31,13 +35,16 @@ export default function Dashboard({ capital, target, trades, winRate }: Dashboar
   }, [capital]);
 
   useEffect(() => {
-    const data = generatePriceHistory(stocks[selectedStock].price, 30);
-    setPriceData(data.map(d => ({ time: d.time, price: d.price })));
-  }, [selectedStock]);
+    if (filteredAssets.length > 0) {
+      const data = generatePriceHistory(filteredAssets[selectedAsset % filteredAssets.length].price, 30);
+      setPriceData(data.map(d => ({ time: d.time, price: d.price })));
+    }
+  }, [selectedAsset, selectedCategory]);
 
   const progress = Math.min((capital / target) * 100, 100);
   const totalGain = capital - (capital * 0.9);
   const monthlyReturn = ((totalGain / (capital * 0.9)) * 100).toFixed(2);
+  const currentAsset = filteredAssets[selectedAsset % filteredAssets.length];
 
   return (
     <div className="space-y-6">
@@ -115,35 +122,35 @@ export default function Dashboard({ capital, target, trades, winRate }: Dashboar
 
       {/* Top Movers & Signals */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Stock List */}
+        {/* Asset List */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
             <Zap className="w-5 h-5 text-yellow-400" />
-            Top Movimientos
+            Top Movimientos {selectedCategory !== 'all' && `- ${getCategoryLabel(selectedCategory)}`}
           </h3>
           <div className="space-y-3">
-            {stocks.slice(0, 6).map((stock, idx) => (
+            {filteredAssets.slice(0, 6).map((asset, idx) => (
               <div
-                key={stock.symbol}
-                onClick={() => setSelectedStock(idx)}
+                key={asset.symbol}
+                onClick={() => setSelectedAsset(idx)}
                 className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
-                  selectedStock === idx ? 'bg-blue-600/20 border border-blue-500/30' : 'hover:bg-gray-700/30'
+                  selectedAsset === idx ? 'bg-blue-600/20 border border-blue-500/30' : 'hover:bg-gray-700/30'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
-                    {stock.symbol.slice(0, 2)}
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getCategoryColor(asset.category)} flex items-center justify-center text-white font-bold text-xs`}>
+                    {asset.category === 'crypto' ? asset.icon || asset.symbol.slice(0, 1) : asset.symbol.slice(0, 2)}
                   </div>
                   <div>
-                    <p className="text-white font-medium">{stock.symbol}</p>
-                    <p className="text-gray-400 text-xs">{stock.name}</p>
+                    <p className="text-white font-medium">{asset.symbol}</p>
+                    <p className="text-gray-400 text-xs">{asset.name}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-white font-medium">${stock.price.toFixed(2)}</p>
-                  <p className={`text-xs flex items-center gap-1 ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {stock.change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    {stock.change >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                  <p className="text-white font-medium">${asset.price < 1 ? asset.price.toFixed(4) : asset.price.toFixed(2)}</p>
+                  <p className={`text-xs flex items-center gap-1 ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {asset.change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {asset.change >= 0 ? '+' : ''}{asset.changePercent.toFixed(2)}%
                   </p>
                 </div>
               </div>
@@ -154,7 +161,7 @@ export default function Dashboard({ capital, target, trades, winRate }: Dashboar
         {/* Mini Chart */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
           <h3 className="text-lg font-semibold text-white mb-4">
-            {stocks[selectedStock]?.symbol} - Precio
+            {currentAsset?.symbol} - Precio
           </h3>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={priceData}>
@@ -169,7 +176,7 @@ export default function Dashboard({ capital, target, trades, winRate }: Dashboar
               <YAxis stroke="#9ca3af" fontSize={10} domain={['auto', 'auto']} />
               <Tooltip
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px' }}
-                formatter={(value: number) => [`$${value.toFixed(2)}`, 'Precio']}
+                formatter={(value: number) => [`$${value.toFixed(value < 1 ? 4 : 2)}`, 'Precio']}
               />
               <Area type="monotone" dataKey="price" stroke="#10b981" fillOpacity={1} fill="url(#colorPrice)" strokeWidth={2} />
             </AreaChart>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
-import { stocks } from '../utils/stockData';
+import { assets, getCategoryColor, getCategoryLabel } from '../utils/stockData';
+import { AssetCategory } from '../types';
 
 interface SignalData {
   symbol: string;
@@ -8,6 +9,7 @@ interface SignalData {
   type: 'STRONG_BUY' | 'BUY' | 'HOLD' | 'SELL' | 'STRONG_SELL';
   confidence: number;
   reasons: string[];
+  category: AssetCategory;
   indicators: {
     rsi: number;
     macd: string;
@@ -17,18 +19,24 @@ interface SignalData {
   };
 }
 
-export default function Signals() {
+interface SignalsProps {
+  selectedCategory: AssetCategory | 'all';
+}
+
+export default function Signals({ selectedCategory }: SignalsProps) {
   const [signals, setSignals] = useState<SignalData[]>([]);
   const [filter, setFilter] = useState<string>('all');
+
+  const filteredAssets = selectedCategory === 'all' ? assets : assets.filter(a => a.category === selectedCategory);
 
   useEffect(() => {
     generateSignals();
     const interval = setInterval(generateSignals, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedCategory]);
 
   const generateSignals = () => {
-    const newSignals: SignalData[] = stocks.map(stock => {
+    const newSignals: SignalData[] = filteredAssets.map(asset => {
       const rsi = Math.random() * 100;
       const macdBullish = Math.random() > 0.5;
       const smaCross = Math.random() > 0.5;
@@ -65,11 +73,12 @@ export default function Signals() {
       }
 
       return {
-        symbol: stock.symbol,
-        name: stock.name,
+        symbol: asset.symbol,
+        name: asset.name,
         type,
         confidence: Math.round(confidence),
         reasons,
+        category: asset.category,
         indicators: {
           rsi: Math.round(rsi),
           macd: macdBullish ? 'Bullish' : 'Bearish',
@@ -100,17 +109,6 @@ export default function Signals() {
     }
   };
 
-  const getSignalIcon = (type: string) => {
-    switch (type) {
-      case 'STRONG_BUY': return <TrendingUp className="w-5 h-5 text-green-400" />;
-      case 'BUY': return <TrendingUp className="w-5 h-5 text-green-300" />;
-      case 'HOLD': return <Minus className="w-5 h-5 text-yellow-400" />;
-      case 'SELL': return <TrendingDown className="w-5 h-5 text-red-300" />;
-      case 'STRONG_SELL': return <TrendingDown className="w-5 h-5 text-red-400" />;
-      default: return null;
-    }
-  };
-
   const getSignalLabel = (type: string) => {
     switch (type) {
       case 'STRONG_BUY': return { text: 'COMPRA FUERTE', color: 'text-green-400 bg-green-500/20' };
@@ -132,7 +130,7 @@ export default function Signals() {
               <AlertCircle className="w-6 h-6 text-blue-400" />
               Señales de Trading en Tiempo Real
             </h2>
-            <p className="text-gray-400 text-sm mt-1">Actualizado cada 10 segundos • Basado en análisis técnico multi-indicador</p>
+            <p className="text-gray-400 text-sm mt-1">Actualizado cada 10 segundos • Multi-activo: Acciones, Crypto, Forex, Commodities</p>
           </div>
           <div className="flex gap-2">
             {[
@@ -163,12 +161,12 @@ export default function Signals() {
             <div key={signal.symbol} className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50 hover:border-blue-500/30 transition-all">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getSignalColor(signal.type)} flex items-center justify-center text-white font-bold`}>
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getCategoryColor(signal.category)} flex items-center justify-center text-white font-bold`}>
                     {signal.symbol.slice(0, 2)}
                   </div>
                   <div>
                     <h3 className="text-white font-bold">{signal.symbol}</h3>
-                    <p className="text-gray-400 text-xs">{signal.name}</p>
+                    <p className="text-gray-400 text-xs">{signal.name} • {getCategoryLabel(signal.category)}</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -229,15 +227,15 @@ export default function Signals() {
 
 function IndicatorBadge({ label, value, color }: { label: string; value: string; color: string }) {
   const colors: Record<string, string> = {
-    green: 'bg-green-500/20 text-green-400 border-green-500/30',
-    red: 'bg-red-500/20 text-red-400 border-red-500/30',
-    yellow: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    blue: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    gray: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+    green: 'bg-green-500/20 text-green-400 border border-green-500/30',
+    red: 'bg-red-500/20 text-red-400 border border-red-500/30',
+    yellow: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+    blue: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+    gray: 'bg-gray-500/20 text-gray-400 border border-gray-500/30',
   };
 
   return (
-    <div className={`text-center p-2 rounded-lg border ${colors[color]}`}>
+    <div className={`text-center p-2 rounded-lg ${colors[color]}`}>
       <p className="text-[10px] text-gray-400">{label}</p>
       <p className="text-xs font-bold">{value}</p>
     </div>
@@ -246,13 +244,13 @@ function IndicatorBadge({ label, value, color }: { label: string; value: string;
 
 function SummaryCard({ label, count, color }: { label: string; count: number; color: string }) {
   const colors: Record<string, string> = {
-    green: 'from-green-500/20 to-green-600/5 border-green-500/20',
-    yellow: 'from-yellow-500/20 to-yellow-600/5 border-yellow-500/20',
-    red: 'from-red-500/20 to-red-600/5 border-red-500/20',
+    green: 'from-green-500/20 to-green-600/5 border border-green-500/20',
+    yellow: 'from-yellow-500/20 to-yellow-600/5 border border-yellow-500/20',
+    red: 'from-red-500/20 to-red-600/5 border border-red-500/20',
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colors[color]} border rounded-xl p-4 text-center`}>
+    <div className={`bg-gradient-to-br ${colors[color]} rounded-xl p-4 text-center`}>
       <p className="text-3xl font-bold text-white">{count}</p>
       <p className="text-xs text-gray-400 mt-1">{label}</p>
     </div>

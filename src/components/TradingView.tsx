@@ -1,22 +1,32 @@
 import { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ComposedChart, Line } from 'recharts';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-import { stocks, generatePriceHistory } from '../utils/stockData';
-import { PricePoint } from '../types';
+import { assets, generatePriceHistory, getCategoryColor, getCategoryLabel } from '../utils/stockData';
+import { AssetCategory, PricePoint } from '../types';
 
-export default function TradingView() {
-  const [selectedStock, setSelectedStock] = useState(0);
+interface TradingViewProps {
+  selectedCategory: AssetCategory | 'all';
+}
+
+export default function TradingView({ selectedCategory }: TradingViewProps) {
+  const filteredAssets = selectedCategory === 'all' ? assets.slice(0, 12) : assets.filter(a => a.category === selectedCategory);
+  
+  const [selectedAsset, setSelectedAsset] = useState(0);
   const [priceData, setPriceData] = useState<PricePoint[]>([]);
   const [showIndicators, setShowIndicators] = useState({ sma20: true, sma50: true, volume: false });
   const [timeframe, setTimeframe] = useState('1M');
 
   useEffect(() => {
     const days = timeframe === '1W' ? 7 : timeframe === '1M' ? 30 : timeframe === '3M' ? 90 : 180;
-    const data = generatePriceHistory(stocks[selectedStock].price, days);
-    setPriceData(data);
-  }, [selectedStock, timeframe]);
+    if (filteredAssets.length > 0) {
+      const data = generatePriceHistory(filteredAssets[selectedAsset % filteredAssets.length].price, days);
+      setPriceData(data);
+    }
+  }, [selectedAsset, timeframe, selectedCategory]);
 
-  const stock = stocks[selectedStock];
+  const asset = filteredAssets[selectedAsset % filteredAssets.length];
+  if (!asset) return null;
+  
   const lastPoint = priceData[priceData.length - 1];
   const rsi = lastPoint?.rsi || 50;
 
@@ -37,35 +47,40 @@ export default function TradingView() {
 
   return (
     <div className="space-y-6">
-      {/* Stock Selector */}
+      {/* Asset Selector */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
         <div className="flex flex-wrap gap-2 mb-6">
-          {stocks.map((s, idx) => (
+          {filteredAssets.map((a, idx) => (
             <button
-              key={s.symbol}
-              onClick={() => setSelectedStock(idx)}
+              key={a.symbol}
+              onClick={() => setSelectedAsset(idx)}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                selectedStock === idx
+                selectedAsset === idx
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
                   : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
               }`}
             >
-              {s.symbol}
+              {a.symbol}
             </button>
           ))}
         </div>
 
-        {/* Stock Info */}
+        {/* Asset Info */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-white">{stock.symbol}</h2>
-            <p className="text-gray-400">{stock.name}</p>
+          <div className="flex items-center gap-3">
+            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getCategoryColor(asset.category)} flex items-center justify-center text-white font-bold`}>
+              {asset.category === 'crypto' ? asset.icon || asset.symbol.slice(0, 1) : asset.symbol.slice(0, 2)}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">{asset.symbol}</h2>
+              <p className="text-gray-400">{asset.name} • {getCategoryLabel(asset.category)}</p>
+            </div>
           </div>
           <div className="text-right">
-            <p className="text-3xl font-bold text-white">${stock.price.toFixed(2)}</p>
-            <p className={`text-lg flex items-center gap-1 ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {stock.change >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-              {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+            <p className="text-3xl font-bold text-white">${asset.price < 1 ? asset.price.toFixed(4) : asset.price.toFixed(2)}</p>
+            <p className={`text-lg flex items-center gap-1 ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {asset.change >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+              {asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)} ({asset.changePercent.toFixed(2)}%)
             </p>
           </div>
         </div>
@@ -96,10 +111,11 @@ export default function TradingView() {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis dataKey="time" stroke="#9ca3af" fontSize={11} tickFormatter={(v) => v.slice(5)} />
-            <YAxis stroke="#9ca3af" fontSize={11} domain={['auto', 'auto']} />
+            <YAxis stroke="#9ca3af" fontSize={11} domain={['auto', 'auto']} tickFormatter={(v) => v < 1 ? v.toFixed(4) : v.toFixed(2)} />
             <Tooltip
               contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px' }}
               labelStyle={{ color: '#9ca3af' }}
+              formatter={(value: number) => [`$${value.toFixed(value < 1 ? 4 : 2)}`, 'Precio']}
             />
             <Area type="monotone" dataKey="price" stroke="#3b82f6" fill="url(#colorPriceMain)" strokeWidth={2} name="Precio" />
             {showIndicators.sma20 && <Line type="monotone" dataKey="sma20" stroke="#f59e0b" strokeWidth={1.5} dot={false} name="SMA 20" />}
@@ -189,31 +205,11 @@ export default function TradingView() {
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
           <h3 className="text-lg font-semibold text-white mb-4">💡 Tips de Trading</h3>
           <div className="space-y-3">
-            <TipCard
-              type="buy"
-              text="Comprar cuando RSI < 30 y precio toca soporte"
-              active={rsi < 35}
-            />
-            <TipCard
-              type="sell"
-              text="Vender cuando RSI > 70 y hay divergencia"
-              active={rsi > 65}
-            />
-            <TipCard
-              type="buy"
-              text="Golden Cross: SMA20 cruza sobre SMA50"
-              active={lastPoint?.sma20 !== undefined && lastPoint?.sma50 !== undefined && lastPoint.sma20 > lastPoint.sma50}
-            />
-            <TipCard
-              type="sell"
-              text="Death Cross: SMA20 cruza bajo SMA50"
-              active={lastPoint?.sma20 !== undefined && lastPoint?.sma50 !== undefined && lastPoint.sma20 < lastPoint.sma50}
-            />
-            <TipCard
-              type="info"
-              text="Nunca invertir más del 5% en una sola operación"
-              active={true}
-            />
+            <TipCard type="buy" text="Comprar cuando RSI < 30 y precio toca soporte" active={rsi < 35} />
+            <TipCard type="sell" text="Vender cuando RSI > 70 y hay divergencia" active={rsi > 65} />
+            <TipCard type="buy" text="Golden Cross: SMA20 cruza sobre SMA50" active={lastPoint?.sma20 !== undefined && lastPoint?.sma50 !== undefined && lastPoint.sma20 > lastPoint.sma50} />
+            <TipCard type="sell" text="Death Cross: SMA20 cruza bajo SMA50" active={lastPoint?.sma20 !== undefined && lastPoint?.sma50 !== undefined && lastPoint.sma20 < lastPoint.sma50} />
+            <TipCard type="info" text="Nunca invertir más del 5% en una sola operación" active={true} />
           </div>
         </div>
       </div>
