@@ -5,6 +5,7 @@ import TradingView from './components/TradingView';
 import AutoTrader from './components/AutoTrader';
 import Signals from './components/Signals';
 import LearningPanel from './components/LearningPanel';
+import ConnectionStatus from './components/ConnectionStatus';
 import { Trade, AssetCategory } from './types';
 import { getCategoryLabel } from './utils/stockData';
 
@@ -170,7 +171,12 @@ function App() {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'dashboard' && (
-            <Dashboard capital={capital} target={15000} trades={trades.length} winRate={winRate} selectedCategory={selectedCategory} />
+            <>
+              <Dashboard capital={capital} target={15000} trades={trades.length} winRate={winRate} selectedCategory={selectedCategory} />
+              <div className="mt-6">
+                <ConnectionStatus />
+              </div>
+            </>
           )}
           {activeTab === 'trading' && <TradingView selectedCategory={selectedCategory} />}
           {activeTab === 'autotrader' && (
