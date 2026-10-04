@@ -42,119 +42,7 @@ function AppContent() {
   const currentCategory = categories.find(c => c.key === selectedCategory)!;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col pb-20 md:pb-0">
-      {/* ===== HEADER ===== */}
-      <header className="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 safe-top">
-        <div className="px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2">
-          {/* Logo + Capital */}
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-              <TrendingUp className="w-4 h-4 text-white" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xs sm:text-sm font-bold text-white leading-tight">TradeAI Pro</h1>
-              <p className="text-[10px] text-green-400 font-medium leading-tight truncate">
-                {formatMoney(capital, { compact: true })}
-              </p>
-            </div>
-          </div>
-
-          {/* Center: Category + Currency */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Currency Selector */}
-            <CurrencySelector />
-
-            {/* Category Selector */}
-            <button
-              onClick={() => setShowCategoryMenu(!showCategoryMenu)}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-gray-800 rounded-xl border border-gray-700 active:scale-95 transition-transform"
-            >
-              <span className={`w-5 h-5 rounded-full ${currentCategory.color} flex items-center justify-center text-white`}>
-                {currentCategory.icon}
-              </span>
-              <span className="text-xs font-medium text-white hidden sm:inline">{currentCategory.label}</span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
-            </button>
-          </div>
-
-          {/* Profile */}
-          <button className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
-            <User className="w-4 h-4 text-white" />
-          </button>
-        </div>
-
-        {/* Category Dropdown */}
-        {showCategoryMenu && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setShowCategoryMenu(false)} />
-            <div className="absolute right-4 top-14 z-50 bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl p-2 min-w-[180px] animate-in fade-in slide-in-from-top-2">
-              {categories.map(cat => (
-                <button
-                  key={cat.key}
-                  onClick={() => { setSelectedCategory(cat.key); setShowCategoryMenu(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all active:scale-95 ${
-                    selectedCategory === cat.key ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  <span className={`w-7 h-7 rounded-full ${cat.color} flex items-center justify-center text-white`}>
-                    {cat.icon}
-                  </span>
-                  <span className="font-medium">{cat.label}</span>
-                  {selectedCategory === cat.key && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400" />}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </header>
-
-      {/* ===== MAIN CONTENT ===== */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
-          {activeTab === 'dashboard' && (
-            <Dashboard capital={capital} target={15000} trades={trades.length} winRate={winRate} selectedCategory={selectedCategory} />
-          )}
-          {activeTab === 'trading' && <TradingView selectedCategory={selectedCategory} />}
-          {activeTab === 'autotrader' && (
-            <AutoTrader
-              onTradeUpdate={(newTrades) => setTrades(prev => [...newTrades, ...prev])}
-              onCapitalUpdate={(newCapital) => setCapital(newCapital)}
-              selectedCategory={selectedCategory}
-            />
-          )}
-          {activeTab === 'signals' && <Signals selectedCategory={selectedCategory} />}
-          {activeTab === 'learning' && <LearningPanel trades={trades} />}
-        </div>
-      </main>
-
-      {/* ===== BOTTOM NAVIGATION (MOBILE) ===== */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-xl border-t border-gray-800 safe-bottom md:hidden">
-        <div className="flex items-center justify-around px-2 py-1.5">
-          {tabs.map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all active:scale-90 min-w-[56px] ${
-                  isActive ? 'text-blue-400' : 'text-gray-500'
-                }`}
-              >
-                <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform`}>
-                  <tab.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
-                  {isActive && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-400" />
-                  )}
-                </div>
-                <span className={`text-[10px] font-medium ${isActive ? 'text-blue-400' : 'text-gray-500'}`}>
-                  {tab.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
+    <div className="min-h-screen bg-gray-900 text-white">
       {/* ===== DESKTOP SIDEBAR ===== */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 lg:w-64 bg-gray-900 border-r border-gray-800 flex-col z-30">
         <div className="p-4 lg:p-6 border-b border-gray-800">
@@ -228,6 +116,121 @@ function AppContent() {
           </div>
         </div>
       </aside>
+
+      {/* ===== MAIN WRAPPER (con margen para sidebar en desktop) ===== */}
+      <div className="md:ml-20 lg:ml-64 flex flex-col min-h-screen pb-20 md:pb-0">
+        {/* ===== HEADER ===== */}
+        <header className="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 safe-top">
+          <div className="px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2">
+            {/* Logo + Capital */}
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
+                <TrendingUp className="w-4 h-4 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-xs sm:text-sm font-bold text-white leading-tight">TradeAI Pro</h1>
+                <p className="text-[10px] text-green-400 font-medium leading-tight truncate">
+                  {formatMoney(capital, { compact: true })}
+                </p>
+              </div>
+            </div>
+
+            {/* Center: Category + Currency */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Currency Selector */}
+              <CurrencySelector />
+
+              {/* Category Selector */}
+              <button
+                onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-gray-800 rounded-xl border border-gray-700 active:scale-95 transition-transform"
+              >
+                <span className={`w-5 h-5 rounded-full ${currentCategory.color} flex items-center justify-center text-white`}>
+                  {currentCategory.icon}
+                </span>
+                <span className="text-xs font-medium text-white hidden sm:inline">{currentCategory.label}</span>
+                <ChevronDown className="w-3 h-3 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Profile */}
+            <button className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
+              <User className="w-4 h-4 text-white" />
+            </button>
+          </div>
+
+          {/* Category Dropdown */}
+          {showCategoryMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowCategoryMenu(false)} />
+              <div className="absolute right-4 top-14 z-50 bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl p-2 min-w-[180px] animate-in fade-in slide-in-from-top-2">
+                {categories.map(cat => (
+                  <button
+                    key={cat.key}
+                    onClick={() => { setSelectedCategory(cat.key); setShowCategoryMenu(false); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all active:scale-95 ${
+                      selectedCategory === cat.key ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className={`w-7 h-7 rounded-full ${cat.color} flex items-center justify-center text-white`}>
+                      {cat.icon}
+                    </span>
+                    <span className="font-medium">{cat.label}</span>
+                    {selectedCategory === cat.key && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400" />}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </header>
+
+        {/* ===== MAIN CONTENT ===== */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
+            {activeTab === 'dashboard' && (
+              <Dashboard capital={capital} target={15000} trades={trades.length} winRate={winRate} selectedCategory={selectedCategory} />
+            )}
+            {activeTab === 'trading' && <TradingView selectedCategory={selectedCategory} />}
+            {activeTab === 'autotrader' && (
+              <AutoTrader
+                onTradeUpdate={(newTrades) => setTrades(prev => [...newTrades, ...prev])}
+                onCapitalUpdate={(newCapital) => setCapital(newCapital)}
+                selectedCategory={selectedCategory}
+              />
+            )}
+            {activeTab === 'signals' && <Signals selectedCategory={selectedCategory} />}
+            {activeTab === 'learning' && <LearningPanel trades={trades} />}
+          </div>
+        </main>
+
+        {/* ===== BOTTOM NAVIGATION (MOBILE) ===== */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-xl border-t border-gray-800 safe-bottom md:hidden">
+          <div className="flex items-center justify-around px-2 py-1.5">
+            {tabs.map(tab => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all active:scale-90 min-w-[56px] ${
+                    isActive ? 'text-blue-400' : 'text-gray-500'
+                  }`}
+                >
+                  <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform`}>
+                    <tab.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
+                    {isActive && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-400" />
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-medium ${isActive ? 'text-blue-400' : 'text-gray-500'}`}>
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }
