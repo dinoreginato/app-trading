@@ -5,16 +5,19 @@ import TradingView from './components/TradingView';
 import AutoTrader from './components/AutoTrader';
 import Signals from './components/Signals';
 import LearningPanel from './components/LearningPanel';
+import { CurrencySelector } from './components/CurrencySelector';
+import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import { Trade, AssetCategory } from './types';
 
 type Tab = 'dashboard' | 'trading' | 'autotrader' | 'signals' | 'learning';
 
-function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [trades, setTrades] = useState<Trade[]>([]);
   const [capital, setCapital] = useState(10000);
   const [selectedCategory, setSelectedCategory] = useState<AssetCategory | 'all'>('all');
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const { formatMoney, currency } = useCurrency();
 
   const tabs = [
     { id: 'dashboard' as Tab, label: 'Inicio', icon: LayoutDashboard },
@@ -40,36 +43,42 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col pb-20 md:pb-0">
-      {/* ===== HEADER MOBILE ===== */}
+      {/* ===== HEADER ===== */}
       <header className="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 safe-top">
-        <div className="px-4 py-3 flex items-center justify-between">
+        <div className="px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2">
           {/* Logo + Capital */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <TrendingUp className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
+              <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <h1 className="text-sm font-bold text-white leading-tight">TradeAI Pro</h1>
-              <p className="text-[10px] text-green-400 font-medium leading-tight">
-                ${capital.toLocaleString('es', { maximumFractionDigits: 0 })}
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-sm font-bold text-white leading-tight">TradeAI Pro</h1>
+              <p className="text-[10px] text-green-400 font-medium leading-tight truncate">
+                {formatMoney(capital, { compact: true })}
               </p>
             </div>
           </div>
 
-          {/* Category Selector */}
-          <button
-            onClick={() => setShowCategoryMenu(!showCategoryMenu)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 rounded-full border border-gray-700 active:scale-95 transition-transform"
-          >
-            <span className={`w-5 h-5 rounded-full ${currentCategory.color} flex items-center justify-center text-white`}>
-              {currentCategory.icon}
-            </span>
-            <span className="text-xs font-medium text-white hidden sm:inline">{currentCategory.label}</span>
-            <ChevronDown className="w-3 h-3 text-gray-400" />
-          </button>
+          {/* Center: Category + Currency */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Currency Selector */}
+            <CurrencySelector />
+
+            {/* Category Selector */}
+            <button
+              onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-gray-800 rounded-xl border border-gray-700 active:scale-95 transition-transform"
+            >
+              <span className={`w-5 h-5 rounded-full ${currentCategory.color} flex items-center justify-center text-white`}>
+                {currentCategory.icon}
+              </span>
+              <span className="text-xs font-medium text-white hidden sm:inline">{currentCategory.label}</span>
+              <ChevronDown className="w-3 h-3 text-gray-400" />
+            </button>
+          </div>
 
           {/* Profile */}
-          <button className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+          <button className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
             <User className="w-4 h-4 text-white" />
           </button>
         </div>
@@ -148,7 +157,6 @@ function App() {
 
       {/* ===== DESKTOP SIDEBAR ===== */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 lg:w-64 bg-gray-900 border-r border-gray-800 flex-col z-30">
-        {/* Logo */}
         <div className="p-4 lg:p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0">
@@ -156,12 +164,11 @@ function App() {
             </div>
             <div className="hidden lg:block">
               <h1 className="text-base font-bold text-white">TradeAI Pro</h1>
-              <p className="text-xs text-gray-400">Multi-Activo</p>
+              <p className="text-xs text-gray-400">Multi-Moneda</p>
             </div>
           </div>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 p-2 lg:p-4 space-y-1">
           {tabs.map(tab => {
             const isActive = activeTab === tab.id;
@@ -170,9 +177,7 @@ function App() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  isActive ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-gray-800'
                 }`}
               >
                 <tab.icon className="w-5 h-5 shrink-0" />
@@ -182,39 +187,56 @@ function App() {
           })}
         </nav>
 
-        {/* Category Filter Desktop */}
-        <div className="hidden lg:block p-4 border-t border-gray-800">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Categoría</p>
-          <div className="space-y-1">
-            {categories.map(cat => (
-              <button
-                key={cat.key}
-                onClick={() => setSelectedCategory(cat.key)}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                  selectedCategory === cat.key
-                    ? 'bg-blue-600/30 text-blue-300'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                }`}
-              >
-                <span className={`w-5 h-5 rounded-full ${cat.color} flex items-center justify-center text-white`}>
-                  {cat.icon}
-                </span>
-                {cat.label}
-              </button>
-            ))}
+        {/* Desktop Currency & Category */}
+        <div className="hidden lg:block p-4 border-t border-gray-800 space-y-4">
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Moneda</p>
+            <div className="flex items-center gap-2 p-2 bg-gray-800 rounded-xl">
+              <span className="text-xl">{currency.flag}</span>
+              <div>
+                <p className="text-xs font-medium text-white">{currency.code}</p>
+                <p className="text-[10px] text-gray-400">{currency.country}</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Categoría</p>
+            <div className="space-y-1">
+              {categories.map(cat => (
+                <button
+                  key={cat.key}
+                  onClick={() => setSelectedCategory(cat.key)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    selectedCategory === cat.key ? 'bg-blue-600/30 text-blue-300' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <span className={`w-5 h-5 rounded-full ${cat.color} flex items-center justify-center text-white`}>
+                    {cat.icon}
+                  </span>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Capital Card */}
         <div className="p-3 lg:p-4 border-t border-gray-800">
           <div className="p-3 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/20">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Capital</p>
-            <p className="text-lg font-bold text-white">${capital.toLocaleString('es', { maximumFractionDigits: 0 })}</p>
+            <p className="text-lg font-bold text-white">{formatMoney(capital, { compact: true })}</p>
             <p className="text-[10px] text-gray-400">{trades.length} ops • {winRate.toFixed(0)}% WR</p>
           </div>
         </div>
       </aside>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <CurrencyProvider>
+      <AppContent />
+    </CurrencyProvider>
   );
 }
 

@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, Settings, DollarSign, Target, Calendar, Shield, Zap, Brain, Link2, AlertTriangle, CheckCircle2, TrendingUp } from 'lucide-react';
 import { AutoTraderConfig, Trade, AssetCategory } from '../types';
-import { assets, getCategoryLabel, currencies } from '../utils/stockData';
+import { assets, getCategoryLabel } from '../utils/stockData';
+import { useCurrency } from '../context/CurrencyContext';
+import { currencies as allCurrencies } from '../utils/currency';
 
 interface AutoTraderProps {
   onTradeUpdate: (trades: Trade[]) => void;
@@ -19,6 +21,8 @@ const brokers = [
 ];
 
 export default function AutoTrader({ onTradeUpdate, onCapitalUpdate, selectedCategory }: AutoTraderProps) {
+  const { formatMoney, currency } = useCurrency();
+  
   const [config, setConfig] = useState<AutoTraderConfig>({
     initialCapital: 10000,
     targetAmount: 15000,
@@ -28,7 +32,7 @@ export default function AutoTrader({ onTradeUpdate, onCapitalUpdate, selectedCat
     maxPositionSize: 10,
     stopLossPercent: 3,
     takeProfitPercent: 5,
-    baseCurrency: 'USD',
+    baseCurrency: currency.code,
     categories: selectedCategory === 'all' ? ['stocks', 'crypto', 'forex', 'commodities'] : [selectedCategory],
   });
 
@@ -211,7 +215,7 @@ export default function AutoTrader({ onTradeUpdate, onCapitalUpdate, selectedCat
             disabled={isRunning}
             className="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
           >
-            {currencies.slice(0, 10).map(c => (
+            {allCurrencies.slice(0, 10).map((c: any) => (
               <option key={c.code} value={c.code}>{c.flag} {c.code} - {c.name}</option>
             ))}
           </select>
@@ -251,12 +255,12 @@ export default function AutoTrader({ onTradeUpdate, onCapitalUpdate, selectedCat
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div className="bg-gray-900/50 rounded-xl p-3">
               <p className="text-[10px] text-gray-400">Capital</p>
-              <p className="text-lg font-bold text-white">{currentCapital.toFixed(0)} {config.baseCurrency}</p>
+              <p className="text-lg font-bold text-white">{formatMoney(currentCapital, { compact: true })}</p>
             </div>
             <div className="bg-gray-900/50 rounded-xl p-3">
               <p className="text-[10px] text-gray-400">P&L</p>
               <p className={`text-lg font-bold ${currentCapital >= config.initialCapital ? 'text-green-400' : 'text-red-400'}`}>
-                {currentCapital >= config.initialCapital ? '+' : ''}{(currentCapital - config.initialCapital).toFixed(0)}
+                {currentCapital >= config.initialCapital ? '+' : ''}{formatMoney(Math.abs(currentCapital - config.initialCapital), { compact: true })}
               </p>
             </div>
           </div>
@@ -307,7 +311,7 @@ export default function AutoTrader({ onTradeUpdate, onCapitalUpdate, selectedCat
                 </div>
                 <div className="text-right">
                   <p className={`text-xs font-bold ${(trade.profit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {(trade.profit || 0) >= 0 ? '+' : ''}${(trade.profit || 0).toFixed(2)}
+                    {(trade.profit || 0) >= 0 ? '+' : ''}{formatMoney(Math.abs(trade.profit || 0))}
                   </p>
                   <p className="text-[9px] text-gray-400">{trade.confidence.toFixed(0)}%</p>
                 </div>

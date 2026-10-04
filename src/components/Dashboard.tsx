@@ -3,6 +3,8 @@ import { TrendingUp, TrendingDown, DollarSign, Target, Activity, Brain, Zap, Arr
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { assets, generatePriceHistory, getCategoryColor, getCategoryLabel } from '../utils/stockData';
 import { AssetCategory } from '../types';
+import { useCurrency } from '../context/CurrencyContext';
+import { convertFromUSD } from '../utils/currency';
 
 interface DashboardProps {
   capital: number;
@@ -13,6 +15,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ capital, target, trades, winRate, selectedCategory }: DashboardProps) {
+  const { formatMoney, currency } = useCurrency();
   const [portfolioHistory, setPortfolioHistory] = useState<{ date: string; value: number }[]>([]);
   const [selectedAsset, setSelectedAsset] = useState(0);
   const [priceData, setPriceData] = useState<{ time: string; price: number }[]>([]);
@@ -45,6 +48,10 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
   const monthlyReturn = 12.45;
   const currentAsset = filteredAssets[selectedAsset % filteredAssets.length];
 
+  // Convertir valores a moneda local
+  const capitalLocal = convertFromUSD(capital, currency);
+  const targetLocal = convertFromUSD(target, currency);
+
   return (
     <div className="space-y-4">
       {/* Hero Card - Capital Principal */}
@@ -53,9 +60,14 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         
         <div className="relative">
-          <p className="text-xs text-blue-100 uppercase tracking-wider font-medium">Capital Total</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-blue-100 uppercase tracking-wider font-medium">Capital Total</p>
+            <span className="text-xs text-blue-200 bg-white/10 px-2 py-0.5 rounded-full">
+              {currency.flag} {currency.code}
+            </span>
+          </div>
           <p className="text-3xl sm:text-4xl font-bold text-white mt-1">
-            ${capital.toLocaleString('es', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatMoney(capital)}
           </p>
           <div className="flex items-center gap-2 mt-2">
             <span className="flex items-center gap-1 px-2 py-0.5 bg-green-500/20 rounded-full text-green-300 text-xs font-medium">
@@ -69,7 +81,7 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
         {/* Mini Progress */}
         <div className="mt-4">
           <div className="flex justify-between text-xs text-blue-100 mb-1.5">
-            <span>Meta: ${target.toLocaleString()}</span>
+            <span>Meta: {formatMoney(target, { compact: true })}</span>
             <span className="font-bold">{progress.toFixed(0)}%</span>
           </div>
           <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
@@ -82,7 +94,7 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
       <div className="grid grid-cols-2 gap-3">
         <QuickStat icon={<Activity className="w-4 h-4" />} label="Operaciones" value={trades.toString()} sublabel={`${winRate.toFixed(0)}% win rate`} color="purple" />
         <QuickStat icon={<Brain className="w-4 h-4" />} label="IA Confianza" value="87%" sublabel="+2.3% hoy" color="orange" />
-        <QuickStat icon={<Target className="w-4 h-4" />} label="Mejor Trade" value="+$342" sublabel="NVDA" color="green" />
+        <QuickStat icon={<Target className="w-4 h-4" />} label="Mejor Trade" value={formatMoney(342, { compact: true })} sublabel="NVDA" color="green" />
         <QuickStat icon={<Zap className="w-4 h-4" />} label="Señales Hoy" value="12" sublabel="8 compra" color="blue" />
       </div>
 
@@ -91,7 +103,7 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-white flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-blue-400" />
-            Portafolio
+            Portafolio ({currency.code})
           </h3>
           <div className="flex gap-1">
             {['7D', '1M', '3M'].map(period => (
@@ -114,7 +126,7 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
             <Tooltip
               contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px', fontSize: '12px' }}
               labelStyle={{ color: '#9ca3af' }}
-              formatter={(value: number) => [`$${value.toLocaleString('es', { maximumFractionDigits: 0 })}`, 'Valor']}
+              formatter={(value: number) => [formatMoney(value), 'Valor']}
             />
             <Area type="monotone" dataKey="value" stroke="#3b82f6" fill="url(#colorValue)" strokeWidth={2} />
           </AreaChart>
@@ -131,32 +143,35 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
           <span className="text-[10px] text-gray-400">{getCategoryLabel(selectedCategory === 'all' ? 'stocks' : selectedCategory)}</span>
         </div>
         <div className="space-y-2">
-          {filteredAssets.slice(0, 5).map((asset, idx) => (
-            <button
-              key={asset.symbol}
-              onClick={() => setSelectedAsset(idx)}
-              className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all active:scale-[0.98] ${
-                selectedAsset === idx ? 'bg-blue-600/20 border border-blue-500/30' : 'bg-gray-900/30 hover:bg-gray-700/30'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getCategoryColor(asset.category)} flex items-center justify-center text-white font-bold text-[10px]`}>
-                  {asset.category === 'crypto' ? asset.icon || asset.symbol.slice(0, 1) : asset.symbol.slice(0, 2)}
+          {filteredAssets.slice(0, 5).map((asset, idx) => {
+            const priceLocal = convertFromUSD(asset.price, currency);
+            return (
+              <button
+                key={asset.symbol}
+                onClick={() => setSelectedAsset(idx)}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all active:scale-[0.98] ${
+                  selectedAsset === idx ? 'bg-blue-600/20 border border-blue-500/30' : 'bg-gray-900/30 hover:bg-gray-700/30'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getCategoryColor(asset.category)} flex items-center justify-center text-white font-bold text-[10px]`}>
+                    {asset.category === 'crypto' ? asset.icon || asset.symbol.slice(0, 1) : asset.symbol.slice(0, 2)}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white font-semibold text-sm">{asset.symbol}</p>
+                    <p className="text-gray-400 text-[10px] truncate max-w-[100px]">{asset.name}</p>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <p className="text-white font-semibold text-sm">{asset.symbol}</p>
-                  <p className="text-gray-400 text-[10px] truncate max-w-[100px]">{asset.name}</p>
+                <div className="text-right">
+                  <p className="text-white font-semibold text-sm">{formatMoney(asset.price, { compact: true })}</p>
+                  <p className={`text-[10px] font-medium flex items-center gap-0.5 justify-end ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {asset.change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                    {asset.change >= 0 ? '+' : ''}{asset.changePercent.toFixed(2)}%
+                  </p>
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="text-white font-semibold text-sm">${asset.price < 1 ? asset.price.toFixed(4) : asset.price.toFixed(2)}</p>
-                <p className={`text-[10px] font-medium flex items-center gap-0.5 justify-end ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {asset.change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {asset.change >= 0 ? '+' : ''}{asset.changePercent.toFixed(2)}%
-                </p>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -168,7 +183,7 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
             <p className="text-[10px] text-gray-400">{currentAsset?.name}</p>
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold text-white">${currentAsset?.price < 1 ? currentAsset?.price.toFixed(4) : currentAsset?.price.toFixed(2)}</p>
+            <p className="text-lg font-bold text-white">{formatMoney(currentAsset?.price || 0)}</p>
             <p className={`text-xs font-medium ${currentAsset?.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {currentAsset?.change >= 0 ? '+' : ''}{currentAsset?.changePercent.toFixed(2)}%
             </p>
@@ -186,7 +201,7 @@ export default function Dashboard({ capital, target, trades, winRate, selectedCa
             <YAxis hide domain={['auto', 'auto']} />
             <Tooltip
               contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px', fontSize: '11px' }}
-              formatter={(value: number) => [`$${value.toFixed(value < 1 ? 4 : 2)}`, 'Precio']}
+              formatter={(value: number) => [formatMoney(value), 'Precio']}
             />
             <Area type="monotone" dataKey="price" stroke="#10b981" fill="url(#colorPrice)" strokeWidth={2} />
           </AreaChart>
