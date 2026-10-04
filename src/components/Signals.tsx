@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle2, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { assets, getCategoryColor, getCategoryLabel } from '../utils/stockData';
 import { AssetCategory } from '../types';
 
@@ -50,26 +50,26 @@ export default function Signals({ selectedCategory }: SignalsProps) {
       if (rsi < 25 && macdBullish && trendUp) {
         type = 'STRONG_BUY';
         confidence = 85 + Math.random() * 15;
-        reasons.push('RSI en sobreventa extrema', 'MACD bullish confirmado', 'Tendencia alcista fuerte');
+        reasons.push('RSI sobreventa extrema', 'MACD bullish', 'Tendencia alcista');
       } else if (rsi < 35 || (macdBullish && volumeHigh)) {
         type = 'BUY';
         confidence = 65 + Math.random() * 20;
-        if (rsi < 35) reasons.push('RSI bajo - posible rebote');
-        if (macdBullish) reasons.push('MACD cruzando al alza');
+        if (rsi < 35) reasons.push('RSI bajo - rebote');
+        if (macdBullish) reasons.push('MACD al alza');
         if (volumeHigh) reasons.push('Volumen creciente');
       } else if (rsi > 75 && !macdBullish) {
         type = 'STRONG_SELL';
         confidence = 80 + Math.random() * 18;
-        reasons.push('RSI en sobrecompra extrema', 'MACD bearish', 'Posible corrección fuerte');
+        reasons.push('RSI sobrecompra', 'MACD bearish', 'Corrección probable');
       } else if (rsi > 65 || (!macdBullish && !trendUp)) {
         type = 'SELL';
         confidence = 60 + Math.random() * 20;
-        if (rsi > 65) reasons.push('RSI alto - tomar ganancias');
+        if (rsi > 65) reasons.push('RSI alto - ganancias');
         if (!trendUp) reasons.push('Tendencia bajista');
       } else {
         type = 'HOLD';
         confidence = 45 + Math.random() * 20;
-        reasons.push('Sin señales claras', 'Esperar confirmación');
+        reasons.push('Sin señales claras', 'Esperar');
       }
 
       return {
@@ -121,86 +121,76 @@ export default function Signals({ selectedCategory }: SignalsProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <AlertCircle className="w-6 h-6 text-blue-400" />
-              Señales de Trading en Tiempo Real
-            </h2>
-            <p className="text-gray-400 text-sm mt-1">Actualizado cada 10 segundos • Multi-activo: Acciones, Crypto, Forex, Commodities</p>
-          </div>
-          <div className="flex gap-2">
-            {[
-              { key: 'all', label: 'Todas' },
-              { key: 'buy', label: '📈 Compra' },
-              { key: 'sell', label: '📉 Venta' },
-              { key: 'hold', label: '⏸ Mantener' },
-            ].map(f => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                  filter === f.key ? 'bg-blue-600 text-white' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
+    <div className="space-y-4">
+      {/* Filter Pills */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        {[
+          { key: 'all', label: 'Todas', icon: '📊' },
+          { key: 'buy', label: 'Compra', icon: '📈' },
+          { key: 'sell', label: 'Venta', icon: '📉' },
+          { key: 'hold', label: 'Mantener', icon: '⏸' },
+        ].map(f => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all active:scale-95 ${
+              filter === f.key ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 border border-gray-700'
+            }`}
+          >
+            <span>{f.icon}</span>
+            {f.label}
+          </button>
+        ))}
       </div>
 
-      {/* Signals Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Signals List */}
+      <div className="space-y-3">
         {filteredSignals.map(signal => {
           const label = getSignalLabel(signal.type);
           return (
-            <div key={signal.symbol} className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50 hover:border-blue-500/30 transition-all">
+            <div key={signal.symbol} className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50 active:scale-[0.99] transition-transform">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getCategoryColor(signal.category)} flex items-center justify-center text-white font-bold`}>
+                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${getCategoryColor(signal.category)} flex items-center justify-center text-white font-bold text-sm`}>
                     {signal.symbol.slice(0, 2)}
                   </div>
                   <div>
-                    <h3 className="text-white font-bold">{signal.symbol}</h3>
-                    <p className="text-gray-400 text-xs">{signal.name} • {getCategoryLabel(signal.category)}</p>
+                    <h3 className="text-white font-bold text-sm">{signal.symbol}</h3>
+                    <p className="text-[10px] text-gray-400">{signal.name}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${label.color}`}>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${label.color}`}>
                     {label.text}
                   </span>
-                  <p className="text-gray-400 text-xs mt-1">Confianza: {signal.confidence}%</p>
+                  <p className="text-[10px] text-gray-400 mt-1">{signal.confidence}%</p>
                 </div>
               </div>
 
               {/* Confidence Bar */}
-              <div className="w-full h-2 bg-gray-700 rounded-full mb-4 overflow-hidden">
+              <div className="w-full h-1.5 bg-gray-700 rounded-full mb-3 overflow-hidden">
                 <div
-                  className={`h-full rounded-full bg-gradient-to-r ${getSignalColor(signal.type)} transition-all duration-500`}
+                  className={`h-full rounded-full bg-gradient-to-r ${getSignalColor(signal.type)} transition-all`}
                   style={{ width: `${signal.confidence}%` }}
                 />
               </div>
 
-              {/* Indicators */}
-              <div className="grid grid-cols-5 gap-2 mb-4">
-                <IndicatorBadge label="RSI" value={signal.indicators.rsi.toString()} color={signal.indicators.rsi < 30 ? 'green' : signal.indicators.rsi > 70 ? 'red' : 'yellow'} />
-                <IndicatorBadge label="MACD" value={signal.indicators.macd} color={signal.indicators.macd === 'Bullish' ? 'green' : 'red'} />
-                <IndicatorBadge label="SMA" value={signal.indicators.sma === 'Golden Cross' ? 'GC' : 'DC'} color={signal.indicators.sma === 'Golden Cross' ? 'green' : 'red'} />
-                <IndicatorBadge label="Vol" value={signal.indicators.volume} color={signal.indicators.volume === 'Alto' ? 'blue' : 'gray'} />
-                <IndicatorBadge label="Trend" value={signal.indicators.trend === 'Alcista' ? '↑' : '↓'} color={signal.indicators.trend === 'Alcista' ? 'green' : 'red'} />
+              {/* Indicators - Compact */}
+              <div className="grid grid-cols-5 gap-1.5 mb-3">
+                <MiniIndicator label="RSI" value={signal.indicators.rsi.toString()} color={signal.indicators.rsi < 30 ? 'green' : signal.indicators.rsi > 70 ? 'red' : 'yellow'} />
+                <MiniIndicator label="MACD" value={signal.indicators.macd === 'Bullish' ? '↑' : '↓'} color={signal.indicators.macd === 'Bullish' ? 'green' : 'red'} />
+                <MiniIndicator label="SMA" value={signal.indicators.sma === 'Golden Cross' ? 'GC' : 'DC'} color={signal.indicators.sma === 'Golden Cross' ? 'green' : 'red'} />
+                <MiniIndicator label="Vol" value={signal.indicators.volume === 'Alto' ? '▲' : '—'} color={signal.indicators.volume === 'Alto' ? 'blue' : 'gray'} />
+                <MiniIndicator label="Trend" value={signal.indicators.trend === 'Alcista' ? '↑' : '↓'} color={signal.indicators.trend === 'Alcista' ? 'green' : 'red'} />
               </div>
 
               {/* Reasons */}
               <div className="space-y-1">
-                {signal.reasons.map((reason, idx) => (
-                  <p key={idx} className="text-xs text-gray-400 flex items-center gap-2">
-                    {signal.type.includes('BUY') ? <CheckCircle2 className="w-3 h-3 text-green-400" /> :
-                     signal.type.includes('SELL') ? <AlertCircle className="w-3 h-3 text-red-400" /> :
-                     <Clock className="w-3 h-3 text-yellow-400" />}
+                {signal.reasons.slice(0, 2).map((reason, idx) => (
+                  <p key={idx} className="text-[10px] text-gray-400 flex items-center gap-1.5">
+                    {signal.type.includes('BUY') ? <CheckCircle2 className="w-2.5 h-2.5 text-green-400 shrink-0" /> :
+                     signal.type.includes('SELL') ? <AlertCircle className="w-2.5 h-2.5 text-red-400 shrink-0" /> :
+                     <Clock className="w-2.5 h-2.5 text-yellow-400 shrink-0" />}
                     {reason}
                   </p>
                 ))}
@@ -211,48 +201,48 @@ export default function Signals({ selectedCategory }: SignalsProps) {
       </div>
 
       {/* Summary */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-        <h3 className="text-lg font-semibold text-white mb-4">Resumen de Señales</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <SummaryCard label="Compra Fuerte" count={signals.filter(s => s.type === 'STRONG_BUY').length} color="green" />
-          <SummaryCard label="Compra" count={signals.filter(s => s.type === 'BUY').length} color="green" />
-          <SummaryCard label="Mantener" count={signals.filter(s => s.type === 'HOLD').length} color="yellow" />
-          <SummaryCard label="Venta" count={signals.filter(s => s.type === 'SELL').length} color="red" />
-          <SummaryCard label="Venta Fuerte" count={signals.filter(s => s.type === 'STRONG_SELL').length} color="red" />
+      <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+        <h3 className="text-sm font-semibold text-white mb-3">Resumen</h3>
+        <div className="grid grid-cols-5 gap-2">
+          <SummaryMini label="Fuerte" count={signals.filter(s => s.type === 'STRONG_BUY').length} color="green" />
+          <SummaryMini label="Compra" count={signals.filter(s => s.type === 'BUY').length} color="green" />
+          <SummaryMini label="Hold" count={signals.filter(s => s.type === 'HOLD').length} color="yellow" />
+          <SummaryMini label="Venta" count={signals.filter(s => s.type === 'SELL').length} color="red" />
+          <SummaryMini label="Fuerte" count={signals.filter(s => s.type === 'STRONG_SELL').length} color="red" />
         </div>
       </div>
     </div>
   );
 }
 
-function IndicatorBadge({ label, value, color }: { label: string; value: string; color: string }) {
+function MiniIndicator({ label, value, color }: { label: string; value: string; color: string }) {
   const colors: Record<string, string> = {
-    green: 'bg-green-500/20 text-green-400 border border-green-500/30',
-    red: 'bg-red-500/20 text-red-400 border border-red-500/30',
-    yellow: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-    blue: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
-    gray: 'bg-gray-500/20 text-gray-400 border border-gray-500/30',
+    green: 'bg-green-500/20 text-green-400',
+    red: 'bg-red-500/20 text-red-400',
+    yellow: 'bg-yellow-500/20 text-yellow-400',
+    blue: 'bg-blue-500/20 text-blue-400',
+    gray: 'bg-gray-500/20 text-gray-400',
   };
 
   return (
-    <div className={`text-center p-2 rounded-lg ${colors[color]}`}>
-      <p className="text-[10px] text-gray-400">{label}</p>
+    <div className={`text-center p-1.5 rounded-lg ${colors[color]}`}>
+      <p className="text-[8px] text-gray-500 uppercase">{label}</p>
       <p className="text-xs font-bold">{value}</p>
     </div>
   );
 }
 
-function SummaryCard({ label, count, color }: { label: string; count: number; color: string }) {
+function SummaryMini({ label, count, color }: { label: string; count: number; color: string }) {
   const colors: Record<string, string> = {
-    green: 'from-green-500/20 to-green-600/5 border border-green-500/20',
-    yellow: 'from-yellow-500/20 to-yellow-600/5 border border-yellow-500/20',
-    red: 'from-red-500/20 to-red-600/5 border border-red-500/20',
+    green: 'bg-green-500/20 text-green-400',
+    yellow: 'bg-yellow-500/20 text-yellow-400',
+    red: 'bg-red-500/20 text-red-400',
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colors[color]} rounded-xl p-4 text-center`}>
-      <p className="text-3xl font-bold text-white">{count}</p>
-      <p className="text-xs text-gray-400 mt-1">{label}</p>
+    <div className={`text-center p-2 rounded-lg ${colors[color]}`}>
+      <p className="text-lg font-bold">{count}</p>
+      <p className="text-[8px] uppercase tracking-wider">{label}</p>
     </div>
   );
 }
