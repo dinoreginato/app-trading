@@ -54,3 +54,26 @@ export interface Currency {
   decimals: number;
   rateToUSD: number;
 }
+
+export interface Pattern {
+  name: string;
+  description: string;
+  successRate: number;
+  occurrences: number;
+  avgReturn: number;
+  lastUsed: string;
+}
+
+export interface LearningStats {
+  totalTrades: number;
+  winRate: number;
+  avgProfit: number;
+  avgLoss: number;
+  bestTrade: number;
+  worstTrade: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  patterns: Pattern[];
+  accuracy: number;
+  learningRate: number;
+}
