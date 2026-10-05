@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { LayoutDashboard, LineChart, Bot, Bell, Brain, TrendingUp, Globe, Bitcoin, DollarSign, Gem, User, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, LineChart, Bot, Bell, Brain, Settings, FileText, TrendingUp, Globe, Bitcoin, DollarSign, Gem, User, ChevronDown } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import TradingView from './components/TradingView';
 import AutoTrader from './components/AutoTrader';
 import Signals from './components/Signals';
 import LearningPanel from './components/LearningPanel';
+import AuditLogs from './components/AuditLogs';
 import { CurrencySelector } from './components/CurrencySelector';
 import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import { Trade, AssetCategory } from './types';
 
-type Tab = 'dashboard' | 'trading' | 'autotrader' | 'signals' | 'learning';
+type Tab = 'dashboard' | 'trading' | 'autotrader' | 'signals' | 'learning' | 'logs';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -25,6 +26,7 @@ function AppContent() {
     { id: 'autotrader' as Tab, label: 'Bot', icon: Bot },
     { id: 'signals' as Tab, label: 'Señales', icon: Bell },
     { id: 'learning' as Tab, label: 'IA', icon: Brain },
+    { id: 'logs' as Tab, label: 'Logs', icon: FileText },
   ];
 
   const categories: { key: AssetCategory | 'all'; label: string; shortLabel: string; icon: React.ReactNode; color: string }[] = [
@@ -198,6 +200,7 @@ function AppContent() {
             )}
             {activeTab === 'signals' && <Signals selectedCategory={selectedCategory} />}
             {activeTab === 'learning' && <LearningPanel trades={trades} />}
+            {activeTab === 'logs' && <AuditLogs />}
           </div>
         </main>
 
