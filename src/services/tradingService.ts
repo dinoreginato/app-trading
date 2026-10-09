@@ -1,4 +1,4 @@
-import { BrokerConfig } from '../components/BrokerConfig';
+import type { BrokerConfigData } from '../types';
 
 // Servicio de Trading Real
 // Conecta con brokers reales para ejecutar operaciones
@@ -30,11 +30,11 @@ export interface AccountBalance {
 }
 
 class TradingService {
-  private config: BrokerConfig | null = null;
+  private config: BrokerConfigData | null = null;
   private logs: any[] = [];
 
   // Configurar broker
-  setConfig(config: BrokerConfig) {
+  setConfig(config: BrokerConfigData) {
     this.config = config;
     this.log('CONFIG', `Broker configurado: ${config.broker}`, { paper: config.isPaperTrading });
   }

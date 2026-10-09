@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Play, Pause, Settings, DollarSign, Target, Calendar, Shield, Zap, Brain, Link2, AlertTriangle, CheckCircle2, TrendingUp } from 'lucide-react';
-import BrokerConfig, { BrokerConfig as BrokerConfigType } from './BrokerConfig';
+import BrokerConfig from './BrokerConfig';
 import { tradingService } from '../services/tradingService';
-import { Trade, AssetCategory } from '../types';
+import { Trade, AssetCategory, BrokerConfigData } from '../types';
 
 interface AutoTraderProps {
   onTradeUpdate: (trades: Trade[]) => void;
@@ -29,7 +29,7 @@ export default function AutoTrader({ onTradeUpdate, onCapitalUpdate, selectedCat
   const [logs, setLogs] = useState<string[]>([]);
   const [day, setDay] = useState(0);
   const [showBrokerModal, setShowBrokerModal] = useState(false);
-  const [brokerConfig, setBrokerConfig] = useState<BrokerConfigType | null>(null);
+  const [brokerConfig, setBrokerConfig] = useState<BrokerConfigData | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingTrade, setPendingTrade] = useState<any>(null);
 
@@ -37,7 +37,7 @@ export default function AutoTrader({ onTradeUpdate, onCapitalUpdate, selectedCat
     setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${message}`, ...prev].slice(0, 50));
   };
 
-  const handleBrokerConfigUpdate = (newConfig: BrokerConfigType) => {
+  const handleBrokerConfigUpdate = (newConfig: BrokerConfigData) => {
     setBrokerConfig(newConfig);
     tradingService.setConfig(newConfig);
     addLog(`✅ Broker configurado: ${newConfig.broker}`);

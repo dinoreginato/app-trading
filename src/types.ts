@@ -77,3 +77,12 @@ export interface LearningStats {
   accuracy: number;
   learningRate: number;
 }
+
+export interface BrokerConfigData {
+  broker: string | null;
+  apiKey: string;
+  apiSecret: string;
+  isPaperTrading: boolean;
+  isConfigured: boolean;
+  accountType: 'individual' | 'business';
+}

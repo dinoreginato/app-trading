@@ -1,21 +1,13 @@
 import { useState } from 'react';
 import { Key, Shield, AlertTriangle, CheckCircle, ExternalLink, Lock, User, Building2 } from 'lucide-react';
+import type { BrokerConfigData } from '../types';
 
 interface BrokerConfigProps {
-  onConfigUpdate: (config: BrokerConfig) => void;
-}
-
-export interface BrokerConfig {
-  broker: string | null;
-  apiKey: string;
-  apiSecret: string;
-  isPaperTrading: boolean;
-  isConfigured: boolean;
-  accountType: 'individual' | 'business';
+  onConfigUpdate: (config: BrokerConfigData) => void;
 }
 
 export default function BrokerConfig({ onConfigUpdate }: BrokerConfigProps) {
-  const [config, setConfig] = useState<BrokerConfig>({
+  const [config, setConfig] = useState<BrokerConfigData>({
     broker: null,
     apiKey: '',
     apiSecret: '',
