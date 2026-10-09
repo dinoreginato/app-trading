@@ -24,85 +24,65 @@ export default function BrokerConfig({ onConfigUpdate }: BrokerConfigProps) {
       id: 'binance',
       name: 'Binance',
       type: 'Criptomonedas',
-      description: 'Exchange #1 mundial - Acepta personas naturales',
+      description: '✅ API REAL - Exchange #1 mundial',
       url: 'https://www.binance.com',
       icon: '₿',
-      features: ['100+ cryptos', 'Persona natural', 'LATAM', 'Fácil'],
+      features: ['API Pública', '100+ cryptos', 'Persona natural', 'LATAM'],
       accountTypes: ['individual'],
       requirements: {
         individual: 'Documento de identidad (pasaporte/DNI)',
       },
       countries: 'Global',
+      hasAPI: true,
+      apiInstructions: 'Perfil → API Management → Create API',
     },
     {
       id: 'bitso',
       name: 'Bitso',
       type: 'Criptomonedas LATAM',
-      description: 'Exchange líder en Latinoamérica',
+      description: '✅ API REAL - Exchange líder en Latinoamérica',
       url: 'https://bitso.com',
       icon: '🌎',
-      features: ['MXN/ARS/COP', 'Persona natural', 'Depósitos locales', 'Rápido'],
+      features: ['API Pública', 'MXN/ARS/COP', 'Persona natural', 'Depósitos locales'],
       accountTypes: ['individual'],
       requirements: {
         individual: 'INE/Pasaporte + Comprobante de domicilio',
       },
       countries: 'México, Argentina, Colombia, Brasil',
-    },
-    {
-      id: 'etoro',
-      name: 'eToro',
-      type: 'Multi-activo',
-      description: 'Acciones, Crypto, Forex - Muy fácil',
-      url: 'https://www.etoro.com',
-      icon: '📊',
-      features: ['Acciones USA', 'Crypto', 'Persona natural', 'Social trading'],
-      accountTypes: ['individual'],
-      requirements: {
-        individual: 'DNI/Pasaporte + Comprobante de domicilio',
-      },
-      countries: 'Global (140+ países)',
-    },
-    {
-      id: 'hapi',
-      name: 'Hapi',
-      type: 'Acciones USA desde LATAM',
-      description: 'Invierte en acciones USA desde Latinoamérica',
-      url: 'https://www.hapi.trade',
-      icon: '🚀',
-      features: ['Acciones USA', 'Sin mínimo', 'Persona natural', 'App móvil'],
-      accountTypes: ['individual'],
-      requirements: {
-        individual: 'Documento de identidad + Selfie',
-      },
-      countries: 'Latinoamérica',
+      hasAPI: true,
+      apiInstructions: 'Perfil → API → Generate new API key',
     },
     {
       id: 'alpaca',
       name: 'Alpaca',
       type: 'Acciones USA',
-      description: 'Sin comisiones - Requiere cuenta USA',
+      description: '✅ API REAL - Sin comisiones (Requiere cuenta USA)',
       url: 'https://alpaca.markets',
       icon: '📈',
-      features: ['Sin comisiones', 'Paper Trading', 'API simple'],
+      features: ['API Pública', 'Sin comisiones', 'Paper Trading', 'API simple'],
       accountTypes: ['individual'],
       requirements: {
         individual: 'SSN (USA) o ITIN + Documento de identidad',
       },
       countries: 'USA (principalmente)',
+      hasAPI: true,
+      apiInstructions: 'Paper Trading → API Keys → Create Key',
     },
     {
       id: 'coinbase',
       name: 'Coinbase',
       type: 'Criptomonedas',
-      description: 'Exchange regulado - Muy seguro',
+      description: '✅ API REAL - Exchange regulado y seguro',
       url: 'https://www.coinbase.com',
       icon: '🪙',
-      features: ['Regulado', 'Seguro', 'Persona natural', 'Fácil'],
+      features: ['API Pública', 'Regulado', 'Seguro', 'Persona natural'],
       accountTypes: ['individual'],
       requirements: {
         individual: 'Documento de identidad + Selfie',
       },
       countries: 'Global (100+ países)',
+      hasAPI: true,
+      apiInstructions: 'Perfil → Settings → API → New API Key',
     },
   ];
 
@@ -125,19 +105,33 @@ export default function BrokerConfig({ onConfigUpdate }: BrokerConfigProps) {
     }, 2000);
   };
 
-  const selectedBroker = brokers.find(b => b.id === config.broker);
+  const selectedBroker = brokers.find(b => b.id === config.broker) as any;
 
   return (
     <div className="space-y-4">
+      {/* Important Notice */}
+      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-6 h-6 text-yellow-400 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-bold text-yellow-300">⚠️ Nota Importante</h3>
+            <p className="text-xs text-gray-300 mt-1">
+              <strong>eToro NO tiene API pública</strong> para personas naturales. Por eso no encuentras la sección.
+              <br /><br />
+              Los brokers listados abajo <strong>SÍ tienen APIs reales y accesibles</strong> para que puedas automatizar tu trading.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-4">
         <div className="flex items-start gap-3">
           <User className="w-6 h-6 text-blue-400 shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-sm font-bold text-blue-300">✨ Para Personas Naturales</h3>
+            <h3 className="text-sm font-bold text-blue-300">✨ Brokers con API REAL para Personas Naturales</h3>
             <p className="text-xs text-gray-300 mt-1">
-              Todos los brokers listados aceptan cuentas individuales (personas naturales). 
-              No necesitas ser empresa ni tener registros comerciales.
+              Estos brokers aceptan cuentas individuales y tienen APIs públicas que puedes usar con TradeAI Pro.
             </p>
           </div>
         </div>
@@ -218,39 +212,81 @@ export default function BrokerConfig({ onConfigUpdate }: BrokerConfigProps) {
         </div>
       </div>
 
-      {/* Requirements */}
+      {/* Requirements & API Instructions */}
       {selectedBroker && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-4">
-          <h3 className="text-sm font-bold text-green-300 mb-2 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4" />
-            Requisitos para {selectedBroker.name}
-          </h3>
-          <div className="space-y-2">
-            <div className="flex items-start gap-2">
-              <span className="text-green-400 text-xs">✓</span>
-              <p className="text-xs text-gray-300">
-                <strong>Cuenta individual:</strong> {selectedBroker.requirements.individual}
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-green-400 text-xs">✓</span>
-              <p className="text-xs text-gray-300">
-                <strong>Edad mínima:</strong> 18 años
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-green-400 text-xs">✓</span>
-              <p className="text-xs text-gray-300">
-                <strong>Verificación:</strong> 1-3 días hábiles
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-green-400 text-xs">✓</span>
-              <p className="text-xs text-gray-300">
-                <strong>Depósito mínimo:</strong> Desde $10 USD
-              </p>
+        <div className="space-y-4">
+          <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-4">
+            <h3 className="text-sm font-bold text-green-300 mb-2 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Requisitos para {selectedBroker.name}
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 text-xs">✓</span>
+                <p className="text-xs text-gray-300">
+                  <strong>Cuenta individual:</strong> {selectedBroker.requirements.individual}
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 text-xs">✓</span>
+                <p className="text-xs text-gray-300">
+                  <strong>Edad mínima:</strong> 18 años
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 text-xs">✓</span>
+                <p className="text-xs text-gray-300">
+                  <strong>Verificación:</strong> 1-3 días hábiles
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 text-xs">✓</span>
+                <p className="text-xs text-gray-300">
+                  <strong>Depósito mínimo:</strong> Desde $10 USD
+                </p>
+              </div>
             </div>
           </div>
+
+          {selectedBroker.hasAPI && (
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4">
+              <h3 className="text-sm font-bold text-blue-300 mb-2 flex items-center gap-2">
+                🔑 Cómo obtener API Keys en {selectedBroker.name}
+              </h3>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 text-xs font-bold">1.</span>
+                  <p className="text-xs text-gray-300">
+                    Ve a <a href={selectedBroker.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">{selectedBroker.url}</a>
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 text-xs font-bold">2.</span>
+                  <p className="text-xs text-gray-300">
+                    Inicia sesión con tu cuenta
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 text-xs font-bold">3.</span>
+                  <p className="text-xs text-gray-300">
+                    <strong>{selectedBroker.apiInstructions}</strong>
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 text-xs font-bold">4.</span>
+                  <p className="text-xs text-gray-300">
+                    Copia <strong>API Key</strong> y <strong>Secret Key</strong> inmediatamente
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 text-xs">⚠️</span>
+                  <p className="text-xs text-red-300">
+                    <strong>IMPORTANTE:</strong> El Secret Key solo se muestra UNA vez. Guárdalo de forma segura.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

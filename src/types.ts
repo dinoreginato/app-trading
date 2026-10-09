@@ -86,3 +86,20 @@ export interface BrokerConfigData {
   isConfigured: boolean;
   accountType: 'individual' | 'business';
 }
+
+export interface BrokerInfo {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  url: string;
+  icon: string;
+  features: string[];
+  accountTypes: string[];
+  requirements: {
+    individual: string;
+  };
+  countries: string;
+  hasAPI?: boolean;
+  apiInstructions?: string;
+}
